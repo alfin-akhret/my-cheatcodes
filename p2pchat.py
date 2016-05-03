@@ -8,8 +8,6 @@ import urllib
 import threading
 from threading import Event
 
-event = Event() # global event to control thread synchonization
-
 # the server
 def start_server(local_port):
     # create socket
@@ -36,43 +34,30 @@ def start_server(local_port):
         (client_addr[0], client_addr[1])
 
         # start two threads
-        # 1: to handle message from client
-        # 2: display prompt to reply message to client
-        try:
-            t1 = threading.Thread(target=message_handler, args=(client_socket,event,))
-            t2 = threading.Thread(target=reply_handler, args=(client_socket,event,))
-            t1.start()
-            t2.start()
-            t1.join()
-            t2.join()
-        except:
-            print "[*] Error: Unable to create threads"
+        message_handler(client_socket)
 
-def message_handler(client_socket, event):
+def message_handler(client_socket):
 
     while 1:
+
         message = client_socket.recv(1024)
+        reply_handler(client_socket)
+
         if len(message):
             print "\n[*] << %s" % message.rstrip()
-            reply = raw_input("[*] >> ")
 
             # client close the connection
             if 'exit()' in message and '\r' in message:
                 client_socket.close()
                 break;
-    return
 
-def reply_handler(client_socket, event):
-    while 1:
-        reply = raw_input("[*] >> ")
-        if len(reply):
-            client_socket.send(reply + '\n')
-            reply = raw_input("[*] >> ")
+def reply_handler(client_socket):
+    reply = raw_input("[*] >> ")
+    if len(reply):
+        client_socket.send(reply + '\n')
 
-        if 'exit()' in reply and '\r' in reply:
-            client_socket.close()
-            break
-    return
+    if 'exit()' in reply and '\r' in reply:
+        client_socket.close()
 
 def get_public_ip():
     # get public facing IP address
