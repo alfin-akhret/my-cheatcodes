@@ -5,16 +5,15 @@ import socket
 import sys
 import argparse
 import urllib
-import threading
-from threading import Event
+import asyncio
 
 # the server
 def start_server(local_port):
     # create socket
     try:
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    except socket.error, e:
-        print "[*] Error: Cannot create socket object: %s" % e
+    except socket.error as  e:
+        print ("[*] Error: Cannot create socket object: %s" % e)
         sys.exit(1)
 
     host = get_public_ip()
@@ -22,16 +21,16 @@ def start_server(local_port):
 
     try:
         server_socket.bind((host, local_port))
-    except socket.error, e:
-        print "[*] Error: Cannot bind socket: %s" % e
+    except socket.error as e:
+        print ("[*] Error: Cannot bind socket: %s" % e)
 
     server_socket.listen(5)
-    print "[*] Server listening on %s:%d" % (host, local_port)
+    print ("[*] Server listening on %s:%d" % (host, local_port))
 
     while 1:
         client_socket, client_addr = server_socket.accept()
-        print "[*] Accepted connection from: %s:%d" % \
-        (client_addr[0], client_addr[1])
+        print ("[*] Accepted connection from: %s:%d" % \
+        (client_addr[0], client_addr[1]))
 
         # start two threads
         message_handler(client_socket)
@@ -44,7 +43,7 @@ def message_handler(client_socket):
         reply_handler(client_socket)
 
         if len(message):
-            print "\n[*] << %s" % message.rstrip()
+            print ("\n[*] << %s" % message.rstrip())
 
             # client close the connection
             if 'exit()' in message and '\r' in message:
@@ -61,8 +60,17 @@ def reply_handler(client_socket):
 
 def get_public_ip():
     # get public facing IP address
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(('8.8.8.8', 80))
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    except socket.error as e:
+        print ("[*] Error: %s" % e)
+        sys.exit(1)
+
+    try:
+        s.connect(('8.8.8.8', 80))
+    except socket.error as e:
+        print ("[*] Error: %s" % e)
+
     ip  = s.getsockname()[0]
     s.close()
     return ip
