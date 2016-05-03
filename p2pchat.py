@@ -5,8 +5,10 @@ import socket
 import sys
 import argparse
 import urllib
-import thread
+import threading
+from threading import Event
 
+event = Event() # global event to control thread synchonization
 
 # the server
 def start_server(local_port):
@@ -37,17 +39,22 @@ def start_server(local_port):
         # 1: to handle message from client
         # 2: display prompt to reply message to client
         try:
-            thread.start_new_thread(message_handler, (client_socket,))
-            thread.start_new_thread(reply_handler, (client_socket,))
+            t1 = threading.Thread(target=message_handler, args=(client_socket,event,))
+            t2 = threading.Thread(target=reply_handler, args=(client_socket,event,))
+            t1.start()
+            t2.start()
+            t1.join()
+            t2.join()
         except:
             print "[*] Error: Unable to create threads"
 
-def message_handler(client_socket):
+def message_handler(client_socket, event):
 
     while 1:
         message = client_socket.recv(1024)
         if len(message):
-            print "\n[*] << %s" % message
+            print "\n[*] << %s" % message.rstrip()
+            reply = raw_input("[*] >> ")
 
             # client close the connection
             if 'exit()' in message and '\r' in message:
@@ -55,11 +62,13 @@ def message_handler(client_socket):
                 break;
     return
 
-def reply_handler(client_socket):
+def reply_handler(client_socket, event):
     while 1:
         reply = raw_input("[*] >> ")
         if len(reply):
             client_socket.send(reply + '\n')
+            reply = raw_input("[*] >> ")
+
         if 'exit()' in reply and '\r' in reply:
             client_socket.close()
             break
