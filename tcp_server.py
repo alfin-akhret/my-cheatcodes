@@ -1,11 +1,10 @@
-# cheat #1: simple p2p chat app
+# cheat #1: simple TCP server 
 # @author: alfin.akhret@gmail.com
 
 import socket
 import sys
 import argparse
 import urllib
-import asyncio
 
 # the server
 def start_server(local_port):
@@ -38,25 +37,20 @@ def start_server(local_port):
 def message_handler(client_socket):
 
     while 1:
-
         message = client_socket.recv(1024)
-        reply_handler(client_socket)
 
         if len(message):
             print ("\n[*] << %s" % message.rstrip())
 
+            reply = b"server replied\n"
+            client_socket.send(reply)
+
             # client close the connection
-            if 'exit()' in message and '\r' in message:
+            if b'exit()' in message and b'\r' in message:
+                reply = b"connection closed!\n"
+                client_socket.send(reply)
                 client_socket.close()
                 break;
-
-def reply_handler(client_socket):
-    reply = raw_input("[*] >> ")
-    if len(reply):
-        client_socket.send(reply + '\n')
-
-    if 'exit()' in reply and '\r' in reply:
-        client_socket.close()
 
 def get_public_ip():
     # get public facing IP address
@@ -82,17 +76,8 @@ def main():
                         required=True,
                         help='listening port to use',
                         dest='local_port')
-    parser.add_argument('--host', required=False,
-                        help='target host to talk',
-                        dest='peer_host')
-    parser.add_argument('--tport', required=False,
-                        help='target port to talk',
-                        dest='peer_port')
-
     given_args = parser.parse_args()
     local_port = given_args.local_port
-    peer_host= given_args.peer_host
-    peer_port = given_args.peer_port
 
     if local_port:
         start_server(local_port)
