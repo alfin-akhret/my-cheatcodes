@@ -4,7 +4,6 @@
 import socket
 import sys
 import argparse
-import threading
 import urllib
 
 
@@ -43,14 +42,16 @@ def start_server(local_port):
 
 def handle_client(client_socket):
     while 1:
+        # reply to client
+        reply = raw_input("[*] >> ")
+        client_socket.send(reply + "\n")
+        reply = raw_input("[*] >> ") 
 
         message = client_socket.recv(1024)
         print "[*] client_%s@%s says: %s" % (client_socket.fileno(),
                                          peers[client_socket.fileno()],
-                                         message)
-        # simple echo
-        # send back packet
-        client_socket.send('ack!')
+                                         message.rstrip())
+        
         # client close the connection
         if 'exit()' in message and '\r' in message:
             client_socket.close()
