@@ -41,21 +41,22 @@ def start_server(local_port):
         handle_client(client_socket)
 
 def handle_client(client_socket):
+
     while 1:
-        # reply to client
         reply = raw_input("[*] >> ")
-        client_socket.send(reply + "\n")
-        reply = raw_input("[*] >> ") 
+        if len(reply):
+            client_socket.send(reply + "\n")
 
         message = client_socket.recv(1024)
-        print "[*] client_%s@%s says: %s" % (client_socket.fileno(),
+        if len(message):
+            print "[*] client_%s@%s says: %s" % (client_socket.fileno(),
                                          peers[client_socket.fileno()],
                                          message.rstrip())
-        
-        # client close the connection
-        if 'exit()' in message and '\r' in message:
-            client_socket.close()
-            break;
+
+            # client close the connection
+            if 'exit()' in message and '\r' in message:
+                client_socket.close()
+                break;
 
 
 def get_public_ip():
