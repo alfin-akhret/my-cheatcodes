@@ -38,23 +38,23 @@ def start_server(local_port):
         # add this new peer to peers array
         peers[client_socket.fileno()] = client_addr[0]
 
-        # start client thread
-        try:
-            client_handler = threading.Thread(target=handle_client,
-                                          args=(client_socket,))
-            client_handler.start()
-        except:
-            print "[*] Error: Unable to start a thread"
-
+        # handle client
+        handle_client(client_socket)
 
 def handle_client(client_socket):
-    message = client_socket.recv(1024)
-    print "[*] client_%s@%s says: %s" % (client_socket.fileno(),
+    while 1:
+
+        message = client_socket.recv(1024)
+        print "[*] client_%s@%s says: %s" % (client_socket.fileno(),
                                          peers[client_socket.fileno()],
                                          message)
-    # send back packet
-    # client_socket.send('ack!')
-    # client_socket.close()
+        # simple echo
+        # send back packet
+        client_socket.send('ack!')
+        # client close the connection
+        if 'exit()' in message and '\r' in message:
+            client_socket.close()
+            break;
 
 
 def get_public_ip():
