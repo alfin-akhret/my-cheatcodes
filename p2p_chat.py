@@ -30,7 +30,7 @@ class Server(threading.Thread):
         self.port = port
 
     def run(self):
-        s = create_socket(self.ip, self.port)
+        s = create_socket(ip=self.ip, port=self.port)
         s.listen(1)
         self.conn, self.addr = s.accept()
         while self.running:
@@ -47,8 +47,58 @@ class Server(threading.Thread):
     def kill(self):
         self.running = 0
 
+# client class
+class Client(threading.Thread):
+    def __init__(self, ip, peer_port=None, peer_ip=None):
+        threading.Thread.__init__(self)
+        self.peer_ip = peer_ip
+        self.peer_port = peer_port
+        self.sock = None
+        self.running = 1
+
+    def run(self):
+        self.sock = create_socket(ctype='client')
+        self.sock.connect((self.peer_ip, self.peer_port))
+        while self.running:
+            input_ready, output_ready, except_ready \
+                    = select.select([self.sock], [self.sock], [])
+            for input_item in input_ready:
+                buff = self.sock.recv(RCV_BUFF_SIZE)
+                if buff:
+                    print ("Them: {}".format(buff))
+                else:
+                    break
+            time.sleep(0)
+
+    def kill(self):
+        self.running = 0
+
+class TextInput(threading.Thread):
+    def __init__(self, client=None, server=None):
+        threading.Thread.__init__(self)
+        self.running = 1
+        self.client = client
+        self.server = server
+
+    def run(self):
+        while self.running:
+            text = input(">>")
+            try:
+                self.client.sock.sendall(text)
+            except:
+                Exception
+
+            try:
+                self.server.sock.sendall(text)
+            except:
+                Exception
+            time.sleep(0)
+
+    def kill(self):
+        self.running = 0
+
 # helper
-def create_socket(ip, port, ctype=server):
+def create_socket(ip='', port=0, ctype='server'):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     except socket.error as e:
@@ -57,8 +107,6 @@ def create_socket(ip, port, ctype=server):
     if ctype == 'server':
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((ip, port))
-    else:
-        pass
 
     return s
 
@@ -67,9 +115,9 @@ def main():
                                      application')
     parser.add_argument('--host', dest='host', default='', help='Your \
                         IP Address', required=False)
-    parser.add_argument('--port', dest='port', default=PORT, help='port \
+    parser.add_argument('--port', dest='port', default=9999, type=int,  help='port \
                         to listen. (default=9999)', required=False)
-    parser.add_argument('--peer', dest='peer_ip', default=peer_ip,
+    parser.add_argument('--peer', dest='peer_ip', default='',
                         help='peer\'s ip address, leave blank if you just \
                         want to wait for your peer to connect', required=False)
     given_args = parser.parse_args()
@@ -81,12 +129,23 @@ def main():
         HOST = s.getsockname()[0]
         s.close()
 
+    PORT = given_args.port
+    peer_ip = given_args.peer_ip
+
     if not len(given_args.peer_ip):
         # act like server
-        pass
+        chat_server = Server(HOST, PORT)
+        chat_server.start()
+        chat_client = Client(HOST)
+        text_input = TextInput(server=chat_server)
+        text_input.start()
     else:
         # act like client
-        pass
+        chat_server = Server(HOST, PORT)
+        chat_client = Client(HOST, peer_ip=peer_ip, peer_port=9999)
+        chat_client.start()
+        text_input = TextInput(client=chat_client)
+        text_input.start()
 
 if __name__ == '__main__':
     main()
