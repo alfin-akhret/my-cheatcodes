@@ -5,9 +5,8 @@ import socket
 import sys
 import argparse
 import urllib
+import thread
 
-
-peers = {} # simple dictionay to hold client connections fileno:ip_address
 
 # the server
 def start_server(local_port):
@@ -34,30 +33,37 @@ def start_server(local_port):
         print "[*] Accepted connection from: %s:%d" % \
         (client_addr[0], client_addr[1])
 
-        # add this new peer to peers array
-        peers[client_socket.fileno()] = client_addr[0]
+        # start two threads
+        # 1: to handle message from client
+        # 2: display prompt to reply message to client
+        try:
+            thread.start_new_thread(message_handler, (client_socket,))
+            thread.start_new_thread(reply_handler, (client_socket,))
+        except:
+            print "[*] Error: Unable to create threads"
 
-        # handle client
-        handle_client(client_socket)
-
-def handle_client(client_socket):
+def message_handler(client_socket):
 
     while 1:
-        reply = raw_input("[*] >> ")
-        if len(reply):
-            client_socket.send(reply + "\n")
-
         message = client_socket.recv(1024)
         if len(message):
-            print "[*] client_%s@%s says: %s" % (client_socket.fileno(),
-                                         peers[client_socket.fileno()],
-                                         message.rstrip())
+            print "\n[*] << %s" % message
 
             # client close the connection
             if 'exit()' in message and '\r' in message:
                 client_socket.close()
                 break;
+    return
 
+def reply_handler(client_socket):
+    while 1:
+        reply = raw_input("[*] >> ")
+        if len(reply):
+            client_socket.send(reply + '\n')
+        if 'exit()' in reply and '\r' in reply:
+            client_socket.close()
+            break
+    return
 
 def get_public_ip():
     # get public facing IP address
