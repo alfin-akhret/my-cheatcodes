@@ -5,6 +5,7 @@ import socket
 import sys
 import argparse
 import threading
+import urllib
 
 # the server
 def start_server(local_port):
@@ -15,7 +16,7 @@ def start_server(local_port):
         print "[*] Error: Cannot create socket object: %s" % e
         sys.exit(1)
 
-    host = socket.gethostbyname(socket.gethostname())
+    host = get_public_ip()
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     try:
@@ -50,6 +51,15 @@ def handle_client(client_socket):
     client_socket.close()
 
 
+def get_public_ip():
+    # get public facing IP address
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(('8.8.8.8', 80))
+    ip  = s.getsockname()[0]
+    s.close()
+    return ip
+
+
 def main():
     parser = argparse.ArgumentParser(description='simple p2p chat')
     parser.add_argument('--port', type=int,
@@ -73,5 +83,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
