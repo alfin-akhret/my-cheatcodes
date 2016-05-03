@@ -41,7 +41,13 @@ def start_server(local_port):
 
 
 def handle_client(client_socket):
-        print "something"
+    request = client_socket.recv(1024)
+
+    print "[*] Receive: %s" % request
+
+    # send back packet
+    client_socket.send('ack!')
+    client_socket.close()
 
 
 def main():
