@@ -4,20 +4,45 @@
 import socket
 import sys
 import argparse
+import threading
 
 # the server
 def start_server(local_port):
     # create socket
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    except socket.error, e:
+        print "[*] Error: Cannot create socket object: %s" % e
+        sys.exit(1)
+
     host = socket.gethostbyname(socket.gethostname())
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    server_socket.bind((host, local_port))
+    try:
+        server_socket.bind((host, local_port))
+    except socket.error, e:
+        print "[*] Error: Cannot bind socket: %s" % e
+
     server_socket.listen(5)
-    '''
+    print "[*] Server listening on %s:%d" % (host, local_port)
+
     while 1:
         client_socket, client_addr = server_socket.accept()
-    '''
+        print "[*] Accepted connection from: %s:%d" % \
+        (client_addr[0], client_addr[1])
+
+        # start client thread
+        try:
+            client_handler = threading.Thread(target=handle_client,
+                                          args=(client_socket,))
+            client_handler.start()
+        except:
+            print "[*] Error: Unable to start a thread"
+
+
+def handle_client(client_socket):
+        print "something"
+
 
 def main():
     parser = argparse.ArgumentParser(description='simple p2p chat')
