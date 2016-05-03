@@ -7,6 +7,9 @@ import argparse
 import threading
 import urllib
 
+
+peers = {} # simple dictionay to hold client connections fileno:ip_address
+
 # the server
 def start_server(local_port):
     # create socket
@@ -32,6 +35,9 @@ def start_server(local_port):
         print "[*] Accepted connection from: %s:%d" % \
         (client_addr[0], client_addr[1])
 
+        # add this new peer to peers array
+        peers[client_socket.fileno()] = client_addr[0]
+
         # start client thread
         try:
             client_handler = threading.Thread(target=handle_client,
@@ -42,13 +48,13 @@ def start_server(local_port):
 
 
 def handle_client(client_socket):
-    request = client_socket.recv(1024)
-
-    print "[*] Receive: %s" % request
-
+    message = client_socket.recv(1024)
+    print "[*] client_%s@%s says: %s" % (client_socket.fileno(),
+                                         peers[client_socket.fileno()],
+                                         message)
     # send back packet
-    client_socket.send('ack!')
-    client_socket.close()
+    # client_socket.send('ack!')
+    # client_socket.close()
 
 
 def get_public_ip():
