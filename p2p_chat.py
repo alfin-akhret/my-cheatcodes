@@ -10,7 +10,7 @@ import threading
 import select
 import time
 import argparse
-
+import sys
 
 # global vars
 HOST = ''
@@ -32,12 +32,13 @@ class Server(threading.Thread):
     def run(self):
         s = create_socket(ip=self.ip, port=self.port)
         s.listen(1)
+        print ("Listening on {}:{}".format(self.ip, self.port))
         self.conn, self.addr = s.accept()
         while self.running:
             input_ready, output_ready, except_ready \
                     = select.select([self.conn], [self.conn], [])
             for input_item in input_ready:
-                buff = self.conn.recv(RCV_BUFF_SIZE)
+                buff = self.conn.recv(RCV_BUF_SIZE)
                 if buff:
                     print ("Them: {}".format(buff))
                 else:
@@ -59,11 +60,13 @@ class Client(threading.Thread):
     def run(self):
         self.sock = create_socket(ctype='client')
         self.sock.connect((self.peer_ip, self.peer_port))
+        print ("CLient Listening on {}:{}".format(self.peer_ip, self.peer_port))
+
         while self.running:
             input_ready, output_ready, except_ready \
                     = select.select([self.sock], [self.sock], [])
             for input_item in input_ready:
-                buff = self.sock.recv(RCV_BUFF_SIZE)
+                buff = self.sock.recv(RCV_BUF_SIZE)
                 if buff:
                     print ("Them: {}".format(buff))
                 else:
@@ -84,14 +87,18 @@ class TextInput(threading.Thread):
         while self.running:
             text = input(">>")
             try:
-                self.client.sock.sendall(text)
-            except:
-                Exception
+                self.client.sendall(text)
+                print("sending...")
+            except socket.error as e:
+                print("[Error]: {}".format(e))
+                sys.exit(1)
 
             try:
-                self.server.sock.sendall(text)
-            except:
-                Exception
+                self.server.sendall(text)
+                print ("sending...")
+            except socket.error as e:
+                print("[Error]: {}".format(e))
+                sys.exit(1)
             time.sleep(0)
 
     def kill(self):
@@ -118,7 +125,7 @@ def main():
     parser.add_argument('--port', dest='port', default=9999, type=int,  help='port \
                         to listen. (default=9999)', required=False)
     parser.add_argument('--peer', dest='peer_ip', default='',
-                        help='peer\'s ip address, leave blank if you just \
+                        help='peer\'s ip address [ip:port], leave blank if you just \
                         want to wait for your peer to connect', required=False)
     given_args = parser.parse_args()
 
@@ -128,21 +135,31 @@ def main():
         s.connect(('8.8.8.8', 80))
         HOST = s.getsockname()[0]
         s.close()
+    else:
+        HOST = given_args.host
 
     PORT = given_args.port
-    peer_ip = given_args.peer_ip
+    if len(given_args.peer_ip):
+        peer_ip = given_args.peer_ip.split(':', 1)[0]
+        peer_port = int(given_args.peer_ip.split(':',1)[1])
+
 
     if not len(given_args.peer_ip):
         # act like server
         chat_server = Server(HOST, PORT)
         chat_server.start()
         chat_client = Client(HOST)
+        print("chat server {}".format(chat_server))
+        print("chat_client {}".format(chat_client))
         text_input = TextInput(server=chat_server)
         text_input.start()
     else:
         # act like client
         chat_server = Server(HOST, PORT)
-        chat_client = Client(HOST, peer_ip=peer_ip, peer_port=9999)
+        chat_client = Client(HOST, peer_ip=peer_ip, peer_port=peer_port)
+        print("chat server {}".format(chat_server))
+        print("chat_client {}".format(chat_client))
+
         chat_client.start()
         text_input = TextInput(client=chat_client)
         text_input.start()
