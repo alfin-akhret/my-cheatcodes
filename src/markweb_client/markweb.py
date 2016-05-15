@@ -7,7 +7,7 @@
 """Naval Fate.
 
 Usage:
-  markweb install
+  markweb install --target=PROJECT_FOLDER
   markweb --version
 
 Options:
@@ -16,8 +16,14 @@ Options:
 
 """
 from docopt import docopt
+from markweb_libs.scafolder import create_folders, write_files
 
+def install(target=''):
+    create_folders(target)
+    write_files(target)
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='Markweb 0.0.1')
-    print arguments
+    args = docopt(__doc__, version='Markweb 0.0.1')
+    # print args
+    if args['install']:
+        install(args['--target'])

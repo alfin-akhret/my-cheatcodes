@@ -2,6 +2,7 @@
 # scafolder for my flask project
 # @author alfin.akhret@gmail.com
 import os
+import sys
 
 def create_folders(project_name=''):
     '''
@@ -11,6 +12,8 @@ def create_folders(project_name=''):
     @param pf (project folder, default='')
     '''
     
+    project_name = project_name + '/'
+
     print 'Creating project folders and files'
 
     project_files = [
@@ -32,8 +35,10 @@ def create_folders(project_name=''):
                 print 'create... %s' %f
                 os.makedirs(os.path.dirname(f))
             except OSError as e:
-                if e.errno != errno.EEXIST:
-                    raise
+                print e
+                sys.exit(1)
+                # if e.errno != errno.EEXIST:
+                #     raise
         open(f, 'a+').close()
 
     print 'Done!'
@@ -43,7 +48,10 @@ def write_files(project_name=''):
     write all base files
     '''
 
+    project_name = project_name + '/'
+
     # create application config file
+    print 'writing configuration ...'
     f = open(project_name + 'config.py', 'w')
     text = """# application configuration
 class BaseConfig(object):
@@ -72,6 +80,7 @@ class DevelopmentConfig(BaseConfig):
     f.close()
     
     # create main application server file
+    print 'writing application server ...'
     f = open(project_name + 'run.py', 'w')
     text = """from flask import Flask
 from app.views.views import default
@@ -95,6 +104,7 @@ if __name__ == '__main__':
     f.close()
 
     # create default views
+    print 'writing base view ...'
     f = open(project_name + 'app/views/views.py', 'w')
     text = """# Basic Views
 from flask import Blueprint
@@ -108,11 +118,12 @@ def home():
     f.write(text)
     f.close()
 
+    print 'Done!'
+
 if __name__ == '__main__':
-    import sys
 
     if len(sys.argv) > 1:
-        project_name = sys.argv[1] + '/'
+        project_name = sys.argv[1]
     else:
         project_name = '' 
     create_folders(project_name)
