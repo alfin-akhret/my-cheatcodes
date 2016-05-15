@@ -10,26 +10,30 @@ def create_folders(project_name=''):
     '''
     import os
     
-    print 'Creating project folders'
+    print 'Creating project folders and files'
+
+    project_files = [
+        project_name + '__init__.py',
+        project_name + 'run.py',
+        project_name + 'config.py',
+        project_name + 'app/__init__.py',
+        project_name + 'static/js/app.js',
+        project_name + 'static/css/style.css',
+        project_name + 'static/images/none.txt'
+        ]
     
-    os.makedirs(project_name + 'app', )
-
-    open(project_name + '__init__.py', 'a+').close()
-    open(project_name + 'app/__init__.py', 'a+').close()
-
-    static_folder = ['js', 'css', 'images']
-    for f in static_folder:
-        os.makedirs(project_name + 'static/' + f)
-        if f == 'js':
-            open(project_name + 'static/js/app.js', 'a+').close()
-        if f == 'css':
-            open(project_name + 'static/css/style.css', 'a+').close()
+    for f in project_files:
+        if not os.path.exists(os.path.dirname(f)):
+            try:
+                os.makedirs(os.path.dirname(f))
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+        open(f, 'a+').close() 
 
     print 'Done!'
 
-  
-
-def create_files(project_name=''):
+def write_files(project_name=''):
     '''
     create all base files
     '''
