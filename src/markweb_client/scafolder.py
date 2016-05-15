@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # scafolder for my flask project
 # @author alfin.akhret@gmail.com
+import os
 
 def create_folders(project_name=''):
     '''
@@ -9,7 +10,6 @@ def create_folders(project_name=''):
     create the project in current CWD
     @param pf (project folder, default='')
     '''
-    import os
     
     print 'Creating project folders and files'
 
@@ -18,6 +18,8 @@ def create_folders(project_name=''):
         'run.py',
         'config.py',
         'app/__init__.py',
+        'app/views/__init__.py',
+        'app/views/views.py',
         'static/js/app.js',
         'static/css/style.css',
         'static/images/none.txt'
@@ -32,16 +34,79 @@ def create_folders(project_name=''):
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
-        open(f, 'a+').close() 
+        open(f, 'a+').close()
 
     print 'Done!'
 
 def write_files(project_name=''):
     '''
-    create all base files
+    write all base files
     '''
-    pass
 
+    # create application config file
+    f = open(project_name + 'config.py', 'w')
+    text = """# application configuration
+class BaseConfig(object):
+    'Base config class'
+    SECRET_KEY = 'A random secret key'
+    DEBUG = True
+    TESTING = False
+    NEW_CONFIG_VARIABLE = 'my value'
+
+class ProductionConfig(BaseConfig):
+    'production spesific config'
+    DEBUG = False
+    #SECRET_KEY = open('/path/to/secret/key/file').read()
+
+class StagingConfig(BaseConfig):
+    'Staging specific config'
+    DEBUG = True
+
+class DevelopmentConfig(BaseConfig):
+    'Development environment spesific config'
+    DEBUG = True
+    TESTING = True
+    SECRET_KEY = 'Another random secret key'
+    """
+    f.write(text)
+    f.close()
+    
+    # create main application server file
+    f = open(project_name + 'run.py', 'w')
+    text = """from flask import Flask
+from app.views.views import default
+
+# create the app
+# set the static folder and instance folder
+app = Flask(__name__, static_folder='/static',
+    instance_path='/instance',
+    instance_relative_config=True)
+
+# register the blueprint
+app.register_blueprint(default)
+
+# load app configuration, default=DevelopmentConfig
+app.config.from_object('config.DevelopmentConfig')
+
+if __name__ == '__main__':
+    app.run()
+    """
+    f.write(text)
+    f.close()
+
+    # create default views
+    f = open(project_name + 'app/views/views.py', 'w')
+    text = """# Basic Views
+from flask import Blueprint
+
+default = Blueprint('default', __name__)
+
+@default.route('/')
+def home():
+    return 'Welcome to Markweb'
+    """
+    f.write(text)
+    f.close()
 
 if __name__ == '__main__':
     import sys
@@ -51,3 +116,4 @@ if __name__ == '__main__':
     else:
         project_name = '' 
     create_folders(project_name)
+    write_files(project_name)
