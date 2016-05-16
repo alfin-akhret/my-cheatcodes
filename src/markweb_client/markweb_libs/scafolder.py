@@ -62,7 +62,7 @@ class Scafolder():
         for item in files_to_write:
             
             src_file, _ = os.path.splitext(item)
-            
+
             # read from source files
             f = open('base_contents/' + os.path.basename(src_file) + '.txt', 'r')
             content = f.read()
@@ -77,7 +77,7 @@ class Scafolder():
 
     def __create_virtual_environment(self):
         '''
-        - create project virtual environment
+        create project virtual environment
         '''
         os.chdir(self.project_name)
         
