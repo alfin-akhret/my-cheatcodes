@@ -4,57 +4,57 @@
 import os
 import sys
 
-def create_folders(project_name):
+class Scafolder():
     '''
-    create a project folders
-    if project name is empty then
-    create the project in current CWD
-    @param pf (project folder, default='')
+    Scafold basic flash directory structures
+    and files
     '''
-    
-    project_name = project_name + '/'
+    def __init__(self, project_name):
+        self.project_name = project_name + '/'
+        self.project_files = [
+            '__init__.py',
+            'run.py',
+            'config.py',
+            'requirements.txt',
+            'app/__init__.py',
+            'app/views/__init__.py',
+            'app/views/views.py',
+            'static/js/app.js',
+            'static/css/style.css',
+            'static/images/none.txt'
+            ]
 
-    print 'Creating project folders and files'
+    def create_folders(self):
+        '''
+        create a project folders
+        if project name is empty then
+        create the project in current CWD
+        @param pf (project folder, default='')
+        ''' 
 
-    project_files = [
-        '__init__.py',
-        'run.py',
-        'config.py',
-        'requirements.txt',
-        'app/__init__.py',
-        'app/views/__init__.py',
-        'app/views/views.py',
-        'static/js/app.js',
-        'static/css/style.css',
-        'static/images/none.txt'
-        ]
-    
-    for f in project_files:
-        f = project_name + f
-        if not os.path.exists(os.path.dirname(f)):
-            try:
-                print 'create... %s' %f
-                os.makedirs(os.path.dirname(f))
-            except OSError as e:
-                print e
-                sys.exit(1)
-                # if e.errno != errno.EEXIST:
-                #     raise
-        open(f, 'a+').close()
+        print 'Creating project folders and files'
+        
+        for f in self.project_files:
+            f = self.project_name + f
+            if not os.path.exists(os.path.dirname(f)):
+                try:
+                    print 'create... %s' %f
+                    os.makedirs(os.path.dirname(f))
+                except OSError as e:
+                    print e
+                    sys.exit(1)
+            open(f, 'a+').close()
 
-    print 'Done!'
+        print 'Done!'
 
-def write_files(project_name):
-    '''
-    write all base files
-    '''
-
-    project_name = project_name + '/'
-
-    # create application config file
-    print 'writing configuration ...'
-    f = open(project_name + 'config.py', 'w')
-    text = """# application configuration
+    def write_files(self):
+        '''
+        write to all base files
+        '''
+        # create application config file
+        print 'writing configuration ...'
+        f = open(self.project_name + 'config.py', 'w')
+        text = """# application configuration
 class BaseConfig(object):
     'Base config class'
     SECRET_KEY = 'A random secret key'
@@ -77,13 +77,13 @@ class DevelopmentConfig(BaseConfig):
     TESTING = True
     SECRET_KEY = 'Another random secret key'
     """
-    f.write(text)
-    f.close()
-    
-    # create main application server file
-    print 'writing application server ...'
-    f = open(project_name + 'run.py', 'w')
-    text = """from flask import Flask
+        f.write(text)
+        f.close()
+        
+        # create main application server file
+        print 'writing application server ...'
+        f = open(self.project_name + 'run.py', 'w')
+        text = """from flask import Flask
 from app.views.views import default
 
 # create the app
@@ -100,14 +100,14 @@ app.config.from_object('config.DevelopmentConfig')
 
 if __name__ == '__main__':
     app.run()
-    """
-    f.write(text)
-    f.close()
+        """
+        f.write(text)
+        f.close()
 
-    # create default views
-    print 'writing base view ...'
-    f = open(project_name + 'app/views/views.py', 'w')
-    text = """# Basic Views
+        # create default views
+        print 'writing base view ...'
+        f = open(self.project_name + 'app/views/views.py', 'w')
+        text = """# Basic Views
 from flask import Blueprint
 
 default = Blueprint('default', __name__)
@@ -116,29 +116,28 @@ default = Blueprint('default', __name__)
 def home():
     return 'Flask server is running'
     """
-    f.write(text)
-    f.close()
+        f.write(text)
+        f.close()
 
-    print 'Done!'
+        print 'Done!'
 
-def create_virtual_environment(project_name):
-    '''
-    - create project virtual environment
-    - activate it
-    - intall flask
-    '''
-    project_name = project_name + '/'
-    os.chdir(project_name)
-    
-    print 'Setting up virtual environment ...'
-    os.system('virtualenv venv')
+    def create_virtual_environment(self):
+        '''
+        - create project virtual environment
+        - activate it
+        - intall flask
+        '''
+        os.chdir(self.project_name)
+        
+        print 'Setting up virtual environment ...'
+        os.system('virtualenv venv')
 
-    f = open(project_name + 'requirements.txt', 'w')
-    text = 'Flask==0.10.1'
-    f.write(text)
-    f.close()
+        f = open(self.project_name + 'requirements.txt', 'w')
+        text = 'Flask==0.10.1'
+        f.write(text)
+        f.close()
 
-    print 'Done!'
+        print 'Done!'
 
 
 if __name__ == '__main__':
@@ -146,6 +145,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         project_name = sys.argv[1]
     else:
-        project_name = '.' 
-    create_folders(project_name)
-    write_files(project_name)
+        project_name = '.'
+    scafolder = Scafolder(project_name)
+    scafolder.create_folders()
+    scafolder.write_files()

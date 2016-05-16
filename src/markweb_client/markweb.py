@@ -16,14 +16,14 @@ Options:
 
 """
 from docopt import docopt
-from markweb_libs.scafolder import create_folders, write_files, create_virtual_environment
+from markweb_libs.scafolder import Scafolder 
 
 def install(target):
     if target is None:
         target = '.'
-    create_folders(target)
-    write_files(target)
-    create_virtual_environment(target)
+    scafolder = Scafolder(target)
+    scafolder.create_folders()
+    scafolder.write_files()
 
 if __name__ == '__main__':
     args = docopt(__doc__, version='Markweb 0.0.1')
