@@ -1,0 +1,9 @@
+# Basic Views
+from flask import Blueprint
+from flask import render_template, request
+
+default = Blueprint('default', __name__)
+
+@default.route('/')
+def home():
+    return render_template('index.html')

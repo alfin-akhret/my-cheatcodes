@@ -1,0 +1,17 @@
+from flask import Flask
+from app.views.views import default
+
+# create the app
+# set the static folder and instance folder
+app = Flask(__name__, static_folder='/static',
+    instance_path='/instance',
+    instance_relative_config=True)
+
+# register the blueprint
+app.register_blueprint(default)
+
+# load app configuration, default=DevelopmentConfig
+app.config.from_object('config.DevelopmentConfig')
+
+if __name__ == '__main__':
+    app.run()

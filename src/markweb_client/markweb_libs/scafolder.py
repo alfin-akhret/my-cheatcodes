@@ -26,7 +26,7 @@ class Scafolder():
             'static/images/none.txt'
             ]
 
-    def create_folders(self):
+    def install(self):
         '''
         create a project folders
         if project name is empty then
@@ -35,7 +35,7 @@ class Scafolder():
         ''' 
 
         print 'Creating project folders and files'
-        
+         
         for f in self.project_files:
             f = self.project_name + f
             if not os.path.exists(os.path.dirname(f)):
@@ -49,122 +49,35 @@ class Scafolder():
 
         print 'Done!'
 
-    def write_files(self):
+        self.__write_files()
+        self.__create_virtual_environment()
+
+    def __write_files(self):
         '''
-        write to all base files
+        write base files
         '''
-        # create application config file
-        print 'writing configuration ...'
-        f = open(self.project_name + 'config.py', 'w')
-        text = """# application configuration
-class BaseConfig(object):
-    'Base config class'
-    SECRET_KEY = 'A random secret key'
-    DEBUG = True
-    TESTING = False
-    NEW_CONFIG_VARIABLE = 'my value'
+        print 'writing base files ...'
+        files_to_write = ['run.py', 'config.py', 'requirements.txt', 'app/views/views.py', 'templates/base.html', 'templates/index.html']
 
-class ProductionConfig(BaseConfig):
-    'production spesific config'
-    DEBUG = False
-    #SECRET_KEY = open('/path/to/secret/key/file').read()
+        for item in files_to_write:
+            
+            src_file, _ = os.path.splitext(item)
+            
+            # read from source files
+            f = open('base_contents/' + os.path.basename(src_file) + '.txt', 'r')
+            content = f.read()
+            f.close()
 
-class StagingConfig(BaseConfig):
-    'Staging specific config'
-    DEBUG = True
-
-class DevelopmentConfig(BaseConfig):
-    'Development environment spesific config'
-    DEBUG = True
-    TESTING = True
-    SECRET_KEY = 'Another random secret key'
-    """
-        f.write(text)
-        f.close()
+            # write to target files
+            f = open(self.project_name + item, 'w')
+            f.write(content)
+            f.close()
         
-        # create main application server file
-        print 'writing application server ...'
-        f = open(self.project_name + 'run.py', 'w')
-        text = """from flask import Flask
-from app.views.views import default
-
-# create the app
-# set the static folder and instance folder
-app = Flask(__name__, static_folder='/static',
-    instance_path='/instance',
-    instance_relative_config=True)
-
-# register the blueprint
-app.register_blueprint(default)
-
-# load app configuration, default=DevelopmentConfig
-app.config.from_object('config.DevelopmentConfig')
-
-if __name__ == '__main__':
-    app.run()
-        """
-        f.write(text)
-        f.close()
-
-        # create default views
-        print 'writing base view ...'
-        f = open(self.project_name + 'app/views/views.py', 'w')
-        text = """# Basic Views
-from flask import Blueprint
-from flask import render_template, request
-
-default = Blueprint('default', __name__)
-
-@default.route('/')
-def home():
-    return render_template('index.html')
-    """
-        f.write(text)
-        f.close()
-
-        f = open(self.project_name + 'templates/base.html', 'w')
-        text = """<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>App name</title>
-</head>
-<body>
-
-    <div class="container">
-        {% block container %}{% endblock %}
-    </div>
-    
-</body>
-</html>"""
-        f.write(text)
-        f.close()
-
-        f = open(self.project_name + 'templates/index.html', 'w')
-        text = """{% extends 'base.html' %}
-
-{% block container %}
-    <p>Flask server is running</p>
-{% endblock %}
-
-</body>
-</html>"""
-        f.write(text)
-        f.close()
-
-        # create requirements.txt
-        f = open(self.project_name + 'requirements.txt', 'w')
-        text = 'Flask==0.10.1'
-        f.write(text)
-        f.close()
-
         print 'Done!'
 
-    def create_virtual_environment(self):
+    def __create_virtual_environment(self):
         '''
         - create project virtual environment
-        - activate it
-        - intall flask
         '''
         os.chdir(self.project_name)
         
@@ -181,6 +94,4 @@ if __name__ == '__main__':
     else:
         project_name = '.'
     scafolder = Scafolder(project_name)
-    scafolder.create_folders()
-    scafolder.write_files()
-    scafolder.create_virtual_environment()
+    scafolder.install()

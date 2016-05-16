@@ -22,9 +22,7 @@ def install(target):
     if target is None:
         target = '.'
     scafolder = Scafolder(target)
-    scafolder.create_folders()
-    scafolder.write_files()
-    scafolder.create_virtual_environment()
+    scafolder.install()
 
 if __name__ == '__main__':
     args = docopt(__doc__, version='Markweb 0.0.1')
