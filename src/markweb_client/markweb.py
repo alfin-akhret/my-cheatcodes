@@ -24,6 +24,7 @@ def install(target):
     scafolder = Scafolder(target)
     scafolder.create_folders()
     scafolder.write_files()
+    scafolder.create_virtual_environment()
 
 if __name__ == '__main__':
     args = docopt(__doc__, version='Markweb 0.0.1')

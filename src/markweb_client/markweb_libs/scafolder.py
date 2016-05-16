@@ -16,6 +16,8 @@ class Scafolder():
             'run.py',
             'config.py',
             'requirements.txt',
+            'templates/base.html',
+            'templates/index.html',
             'app/__init__.py',
             'app/views/__init__.py',
             'app/views/views.py',
@@ -109,13 +111,50 @@ if __name__ == '__main__':
         f = open(self.project_name + 'app/views/views.py', 'w')
         text = """# Basic Views
 from flask import Blueprint
+from flask import render_template, request
 
 default = Blueprint('default', __name__)
 
 @default.route('/')
 def home():
-    return 'Flask server is running'
+    return render_template('index.html')
     """
+        f.write(text)
+        f.close()
+
+        f = open(self.project_name + 'templates/base.html', 'w')
+        text = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>App name</title>
+</head>
+<body>
+
+    <div class="container">
+        {% block container %}{% endblock %}
+    </div>
+    
+</body>
+</html>"""
+        f.write(text)
+        f.close()
+
+        f = open(self.project_name + 'templates/index.html', 'w')
+        text = """{% extends 'base.html' %}
+
+{% block container %}
+    <p>Flask server is running</p>
+{% endblock %}
+
+</body>
+</html>"""
+        f.write(text)
+        f.close()
+
+        # create requirements.txt
+        f = open(self.project_name + 'requirements.txt', 'w')
+        text = 'Flask==0.10.1'
         f.write(text)
         f.close()
 
@@ -131,12 +170,7 @@ def home():
         
         print 'Setting up virtual environment ...'
         os.system('virtualenv venv')
-
-        f = open(self.project_name + 'requirements.txt', 'w')
-        text = 'Flask==0.10.1'
-        f.write(text)
-        f.close()
-
+        
         print 'Done!'
 
 
@@ -149,3 +183,4 @@ if __name__ == '__main__':
     scafolder = Scafolder(project_name)
     scafolder.create_folders()
     scafolder.write_files()
+    scafolder.create_virtual_environment()
