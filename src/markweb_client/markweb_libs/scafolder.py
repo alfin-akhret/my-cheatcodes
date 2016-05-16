@@ -4,7 +4,7 @@
 import os
 import sys
 
-def create_folders(project_name=''):
+def create_folders(project_name):
     '''
     create a project folders
     if project name is empty then
@@ -20,6 +20,7 @@ def create_folders(project_name=''):
         '__init__.py',
         'run.py',
         'config.py',
+        'requirements.txt',
         'app/__init__.py',
         'app/views/__init__.py',
         'app/views/views.py',
@@ -43,7 +44,7 @@ def create_folders(project_name=''):
 
     print 'Done!'
 
-def write_files(project_name=''):
+def write_files(project_name):
     '''
     write all base files
     '''
@@ -113,18 +114,38 @@ default = Blueprint('default', __name__)
 
 @default.route('/')
 def home():
-    return 'Welcome to Markweb'
+    return 'Flask server is running'
     """
     f.write(text)
     f.close()
 
     print 'Done!'
 
+def create_virtual_environment(project_name):
+    '''
+    - create project virtual environment
+    - activate it
+    - intall flask
+    '''
+    project_name = project_name + '/'
+    os.chdir(project_name)
+    
+    print 'Setting up virtual environment ...'
+    os.system('virtualenv venv')
+
+    f = open(project_name + 'requirements.txt', 'w')
+    text = 'Flask==0.10.1'
+    f.write(text)
+    f.close()
+
+    print 'Done!'
+
+
 if __name__ == '__main__':
 
     if len(sys.argv) > 1:
         project_name = sys.argv[1]
     else:
-        project_name = '' 
+        project_name = '.' 
     create_folders(project_name)
     write_files(project_name)
