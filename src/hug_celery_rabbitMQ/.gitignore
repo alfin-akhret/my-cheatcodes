@@ -1,0 +1,7 @@
+venv/
+*.swp
+__pycache__/
+*.pyc
+config.py
+exp/
+logs/celery.log
